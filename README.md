@@ -7,14 +7,13 @@ I also intend to show how to use **randomtools** to simulate some stochastic pro
 
 Continuous Distributions:
 
-*	uniform
-*	gaussian (Park & Miller)
-*	gaussian (Central Limit Theorem)
-*	gaussian (Moro Inversion)
-*	exponential
-*	lognormal
+*	*uniform*
+*	*gaussian* (Park & Miller)
+*	*gaussian* (Central Limit Theorem)
 *	gaussian with interpolation (article)
-*	gaussian Moro inversion
+*	gaussian (Moro Inversion)
+*	*exponential*
+*	*lognormal*
 *	gamma
 *	levy
 *	power law (Pareto)
@@ -22,8 +21,8 @@ Continuous Distributions:
 
 Discrete Distributions:
 
-*	poisson
-*	binomial
+*	*poisson*
+*	*binomial*
 *	negative binomial
 *	geometric
 
