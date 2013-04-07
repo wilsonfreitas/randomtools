@@ -7,31 +7,6 @@ randomtools.py
 Created by Wilson Freitas on 2008-11-27.
 Copyright (c) 2008 WelCo. All rights reserved.
 
-Continuous Distributions:
-x uniform
-x gaussian (Park & Miller)
-x gaussian CLT
-x exponential
-x lognormal
-. gaussian with interpolation (article)
-. gaussian Moro inversion
-. gamma
-. levy
-. power law (Pareto)
-. beta
-
-Discrete Distributions:
-x poisson
-x binomial
-. negative binomial
-. geometric
-
-Stochatic Processes:
-. mgb
-. mab
-. mean reversion
-. mean reversion with jumps
-. noise decorators
 """
 
 from math import sqrt, log, ceil, exp
@@ -70,7 +45,7 @@ def uniform(rand, *args, **kw):
 #     return _uniform
 
 
-def gaussian_clt(rand, mu=0.0, sigma=1.0, N=12):
+def gaussian_clt(rand, *args, **kw):
     """
     Gaussian random number generator using the Central Limit Theorem
     
@@ -78,24 +53,22 @@ def gaussian_clt(rand, mu=0.0, sigma=1.0, N=12):
     deviation specified.
     """
     
-    q = sqrt(1.0/3.0) * sqrt(N)
+    def _gaussian_clt(mu=0.0, sigma=1.0, N=12):
+        s = sum( rand() for i in range(N) )
+        norm = (s - N*0.5) / sqrt(N/12.0)
+        return mu + sigma*norm
     
-    def _gaussian_clt():
-        s = sum( -1 + rand()*2 for i in range(N) )
-        return s / q
-    
-    return _gaussian_clt
+    return currying(_gaussian_clt, *args, **kw)
 
 
-def gaussian_bm(rand, mu=0.0, sigma=1.0):
+def gaussian_bm(rand, *args, **kw):
     """docstring for gaussian
     http://www.taygeta.com/random/gaussian.html
     """
     
     p = [False, 0.0]
     
-    def _gaussian_bm():
-        
+    def _gaussian_bm(mu=0.0, sigma=1.0):
         if p[0]:
             p[0] = False
             y = p[1]
@@ -112,7 +85,7 @@ def gaussian_bm(rand, mu=0.0, sigma=1.0):
             
         return mu + sigma * y
     
-    return _gaussian_bm
+    return currying(_gaussian_bm, *args, **kw)
 
 
 def gaussian(impl, rand, **kwargs):
