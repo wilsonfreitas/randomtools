@@ -9,16 +9,24 @@ Copyright (c) 2008 WelCo. All rights reserved.
 
 """
 
+# from inspect import getargspec
 from math import sqrt, log, ceil, exp
 
 LOG_2 = log(2)
 
+class curried(object):
+    def __init__(self, func, *args, **kw):
+        self.func = func
+        self.args = args
+        self.kw = kw
+    
+    def __call__(self, *args, **kw):
+        args = self.args + args
+        kw = dict(self.kw, **kw)
+        return lambda *margs, **mkw: self.func(*(args+margs), **dict(kw, **mkw))
 
-def currying(f, *args, **kw):
-    return lambda *margs, **mkw: f(*(args+margs), **dict(kw, **mkw))
-
-
-def uniform(rand, *args, **kw):
+@curried
+def uniform(rand, a, b):
     '''
     Uniform distribution - U(a,b)
     
@@ -31,61 +39,50 @@ def uniform(rand, *args, **kw):
     a: lower bound
     b: upper bound
     '''
-    def _uniform(a, b):
-        return a + (b-a) * rand()
-    
-    return currying(_uniform, *args, **kw)
+    return a + (b-a) * rand()
 
-
-# def uniform(rand, a=0.0, b=1.0):
-#     
-#     def _uniform():
-#         return a + (b-a) * rand()
-#     
-#     return _uniform
-
-
-def gaussian_clt(rand, *args, **kw):
+@curried
+def gaussian_clt(rand, mu=0.0, sigma=1.0, N=12):
     """
     Gaussian random number generator using the Central Limit Theorem
     
-    Generate gaussian distrubuted random numbers with mean and standard 
+    Generate gaussian distributed random numbers with mean and standard 
     deviation specified.
     """
-    
-    def _gaussian_clt(mu=0.0, sigma=1.0, N=12):
-        s = sum( rand() for i in range(N) )
-        norm = (s - N*0.5) / sqrt(N/12.0)
-        return mu + sigma*norm
-    
-    return currying(_gaussian_clt, *args, **kw)
+    s = sum( rand() for i in range(N) )
+    norm = (s - N*0.5) / sqrt(N/12.0)
+    return mu + sigma*norm
 
-
-def gaussian_bm(rand, *args, **kw):
-    """docstring for gaussian
+@curried
+def gaussian_bm(rand, mu=0.0, sigma=1.0):
+    """
+    Gaussian random number generator using the Box & Miller algorithm
+    
     http://www.taygeta.com/random/gaussian.html
+    
+    TODO: this function must implement some kind of memory, two random numbers
+    are generated but one is not used. If it had a memory then the first number
+    would be returned at the first call and at the second call the second number
+    would be returned without waste time processing a new number.
     """
     
     p = [False, 0.0]
     
-    def _gaussian_bm(mu=0.0, sigma=1.0):
-        if p[0]:
-            p[0] = False
-            y = p[1]
-        else:
-            d = 1.0
-            while d >= 1.0:
-                x1 = 2.0 * rand() - 1.0
-                x2 = 2.0 * rand() - 1.0
-                d = x1*x1 + x2*x2
-            d = sqrt( (-2.0*log(d))/d )
-            y = x1 * d
-            p[1] = x2 * d
-            p[0] = True
-            
-        return mu + sigma * y
-    
-    return currying(_gaussian_bm, *args, **kw)
+    if p[0]:
+        p[0] = False
+        y = p[1]
+    else:
+        d = 1.0
+        while d >= 1.0:
+            x1 = 2.0 * rand() - 1.0
+            x2 = 2.0 * rand() - 1.0
+            d = x1*x1 + x2*x2
+        d = sqrt( (-2.0*log(d))/d )
+        y = x1 * d
+        p[1] = x2 * d
+        p[0] = True
+        
+    return mu + sigma*y
 
 
 def gaussian(impl, rand, **kwargs):
