@@ -14,6 +14,7 @@ from math import sqrt, log, ceil, exp
 
 LOG_2 = log(2)
 
+
 class curried(object):
     def __init__(self, func, *args, **kw):
         self.func = func
@@ -53,36 +54,84 @@ def gaussian_clt(rand, mu=0.0, sigma=1.0, N=12):
     norm = (s - N*0.5) / sqrt(N/12.0)
     return mu + sigma*norm
 
+
+class shortmemory(object):
+    def __init__(self, func):
+        self.func = func
+        self.cache = { }
+
+    def __call__(self, *args, **kw):
+        key = args + tuple(kw.values())
+        try:
+            ret = self.cache[key]
+            del self.cache[key]
+            return ret[1]
+        except:
+            self.cache[key] = self.func(*args, **kw)
+            ret = self.cache[key]
+            return ret[0]
+
+    def __repr__(self):
+        return self.func.__doc__
+
+
+class memorize1(object):
+    def __init__(self, func):
+        self.func = func
+        self.index = True
+
+    def __call__(self, *args, **kw):
+        if self.index:
+            self.ret = self.func(*args, **kw)
+            self.index = False
+            print ret, self.cache
+            return ret[0]
+        else:
+            self.index = True
+            print self.ret, self.cache
+            return self.ret[1]
+
+
+class memorize2(object):
+    def __init__(self, func):
+        self.func = func
+        self.index = True
+        self.cache = { }
+
+    def __call__(self, *args, **kw):
+        if self.index:
+            self.cache[args] = self.func(*args, **kw)
+            ret = self.cache[args]
+            self.index = False
+            print ret, self.cache
+            return ret[0]
+        else:
+            self.index = True
+            try:
+                ret = self.cache[args]
+            except:
+                return self(*args, **kw)
+            print ret, self.cache
+            return ret[1]
+
+
 @curried
+@shortmemory
 def gaussian_bm(rand, mu=0.0, sigma=1.0):
     """
-    Gaussian random number generator using the Box & Miller algorithm
+    Gaussian random number generator using the Box & Miller (1958) 
+    transformation
     
     http://www.taygeta.com/random/gaussian.html
-    
-    TODO: this function must implement some kind of memory, two random numbers
-    are generated but one is not used. If it had a memory then the first number
-    would be returned at the first call and at the second call the second number
-    would be returned without waste time processing a new number.
     """
     
-    p = [False, 0.0]
-    
-    if p[0]:
-        p[0] = False
-        y = p[1]
-    else:
-        d = 1.0
-        while d >= 1.0:
-            x1 = 2.0 * rand() - 1.0
-            x2 = 2.0 * rand() - 1.0
-            d = x1*x1 + x2*x2
-        d = sqrt( (-2.0*log(d))/d )
-        y = x1 * d
-        p[1] = x2 * d
-        p[0] = True
-        
-    return mu + sigma*y
+    d = 1.0
+    while d >= 1.0:
+        x1 = 2.0 * rand() - 1.0
+        x2 = 2.0 * rand() - 1.0
+        d = x1*x1 + x2*x2
+    d = sqrt( (-2.0*log(d))/d )
+    return (mu + sigma*x1*d, mu + sigma*x2*d)
 
 
 def gaussian(impl, rand, **kwargs):
