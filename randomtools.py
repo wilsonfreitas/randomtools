@@ -61,7 +61,7 @@ class shortmemory(object):
         self.cache = { }
 
     def __call__(self, *args, **kw):
-        key = args + tuple(kw.values())
+        key = args + tuple(kw.keys()) + tuple(kw.values())
         try:
             ret = self.cache[key]
             del self.cache[key]
