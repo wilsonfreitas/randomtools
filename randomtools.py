@@ -13,7 +13,7 @@ Copyright (c) 2008 WelCo. All rights reserved.
 from math import sqrt, log, ceil, exp
 
 LOG_2 = log(2)
-
+UNIF_STD = sqrt(1.0/12.0)
 
 class curried(object):
     def __init__(self, func, *args, **kw):
@@ -65,7 +65,7 @@ def uniform(rand, a, b):
 
 
 @curried
-def clt(rand, mu=0.0, sigma=1.0, m=0.5, std=1.0/12.0, N=12):
+def clt(rand, mu=0.0, sigma=1.0, m=0.5, std=UNIF_STD, N=12):
     """
     Gaussian random number generator using the Central Limit Theorem – 
     N(mu, sigma**2)
