@@ -122,6 +122,37 @@ def boxmiller(rand, mu=0.0, sigma=1.0):
     return (mu + sigma*x1*d, mu + sigma*x2*d)
 
 
+A = [ 2.50662823884, -18.61500062529, 41.39119773534, -25.44106049637 ]
+B = [ -8.47351093090, 23.08336743743, -21.06224101826, 3.13082909833 ]
+C = [ 0.3374754822726147, 0.9761690190917186, 0.1607979714918209,
+    0.0276438810333863, 0.0038405729373609, 0.0003951896511919,
+    0.0000321767881768, 0.0000002888167364, 0.0000003960315187 ]
+
+@curried
+def moro(rand, mu=0.0, sigma=1.0):
+    '''
+    Returns the inverse of the cumulative normal distribution 
+    Written by B. Moro, November 1994
+    '''
+    U = rand()
+    X = U - 0.5
+    if abs(X) < 0.42:
+        R = X*X
+        R = X*( ( (A[3]*R + A[2])*R + A[1] )*R + A[0] ) / \
+            ( ( ( (B[3]*R + B[2])*R + B[1] )*R + B[0] )*R + 1.0 )
+        return mu + sigma*R
+
+    R = U
+    if X > 0.0:
+        R = 1.0 - U
+
+    R = log( -log(R) )
+    R = C[0] + R*(C[1] + R*( C[2] + R*( C[3] + R*( C[4] + R*( C[5] + R*( C[6] + R*(C[7] + R*C[8]) ) ) ) ) ))
+    if X < 0.0:
+        R = -R
+    return mu + sigma*R
+
+
 @curried
 def exponential(rand, lambd):
     '''

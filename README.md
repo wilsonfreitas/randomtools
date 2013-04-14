@@ -11,7 +11,7 @@ Continuous Distributions:
 *	*gaussian* (Park & Miller)
 *	*gaussian* (Central Limit Theorem)
 *	gaussian with interpolation (article)
-*	gaussian (Moro Inversion)
+*	*gaussian (Moro Inversion)*
 *	*exponential*
 *	*lognormal*
 *	gamma
