@@ -26,34 +26,6 @@ class curried(object):
         kw = dict(self.kw, **kw)
         return lambda *margs, **mkw: self.func(*(args+margs), **dict(kw, **mkw))
 
-@curried
-def uniform(rand, a, b):
-    '''
-    Uniform distribution - U(a,b)
-    
-    Generate random numbers uniformly distributed into the interval [a , b).
-    
-    unif = uniform(rand, a, b)
-    
-    rand: uniform random number generator, generally provided by standard 
-          library or some scientific package.
-    a: lower bound
-    b: upper bound
-    '''
-    return a + (b-a) * rand()
-
-@curried
-def gaussian_clt(rand, mu=0.0, sigma=1.0, N=12):
-    """
-    Gaussian random number generator using the Central Limit Theorem
-    
-    Generate gaussian distributed random numbers with mean and standard 
-    deviation specified.
-    """
-    s = sum( rand() for i in range(N) )
-    norm = (s - N*0.5) / sqrt(N/12.0)
-    return mu + sigma*norm
-
 
 class shortmemory(object):
     def __init__(self, func):
@@ -75,53 +47,69 @@ class shortmemory(object):
         return self.func.__doc__
 
 
-class memorize1(object):
-    def __init__(self, func):
-        self.func = func
-        self.index = True
+@curried
+def uniform(rand, a, b):
+    '''
+    Uniform distribution - U(a,b)
+    
+    Generate random numbers uniformly distributed into the interval [a , b).
+    
+    unif = uniform(rand, a, b)
+    
+    rand: uniform random number generator, generally provided by standard 
+          library or some scientific package.
+    a: lower bound
+    b: upper bound
+    '''
+    return a + (b-a) * rand()
 
-    def __call__(self, *args, **kw):
-        if self.index:
-            self.ret = self.func(*args, **kw)
-            self.index = False
-            print ret, self.cache
-            return ret[0]
-        else:
-            self.index = True
-            print self.ret, self.cache
-            return self.ret[1]
 
-
-class memorize2(object):
-    def __init__(self, func):
-        self.func = func
-        self.index = True
-        self.cache = { }
-
-    def __call__(self, *args, **kw):
-        if self.index:
-            self.cache[args] = self.func(*args, **kw)
-            ret = self.cache[args]
-            self.index = False
-            print ret, self.cache
-            return ret[0]
-        else:
-            self.index = True
-            try:
-                ret = self.cache[args]
-            except:
-                return self(*args, **kw)
-            print ret, self.cache
-            return ret[1]
+@curried
+def clt(rand, mu=0.0, sigma=1.0, m=0.5, std=1.0/12.0, N=12):
+    """
+    Gaussian random number generator using the Central Limit Theorem – 
+    N(mu, sigma**2)
+    
+    Generate gaussian distributed random numbers with mean and standard 
+    deviation specified. The standard output yields random numbers following 
+    the standardized gaussian distribution N(0,1).
+    
+    The rand function can be any random number generator with known mean and
+    variance (m and std stand for mean and standard deviation of the given 
+    random number generator).
+    This function has default parameters which represent a uniform 
+    uniform distribution U(0,1). But in order to understand the way Central 
+    Limit Theorem works with other distributions, for example, binomial 
+    distribution, these parameters can be changed to configure properly the 
+    random numbers generation.
+    """
+    s = sum( rand() for i in range(N) )
+    norm = (s - N*m) / ( sqrt(N)*std )
+    return mu + sigma*norm
 
 
 @curried
 @shortmemory
-def gaussian_bm(rand, mu=0.0, sigma=1.0):
+def boxmiller(rand, mu=0.0, sigma=1.0):
     """
     Gaussian random number generator using the Box & Miller (1958) 
-    transformation
+    transformation – N(mu, sigma**2)
     
+    The reference bellow proposes a different implementation of original's
+    Box & Miller algorithm which uses
+    
+    y1 = sqrt( - 2 ln(x1) ) cos( 2 pi x2 )
+    y2 = sqrt( - 2 ln(x1) ) sin( 2 pi x2 )
+    
+    to generate gaussian random numbers.
+    That implementation is said to be slow due to many calls it does to the math
+    library and also might have numerical instability when x1 is close to 
+    zero.
+    The proposed algorithm is a polar form of the Box & Miller algorithm.
+    This polar form is interesting because it does the sine and cosine 
+    geometrically without calling the math library.
+    
+    Reference:
     http://www.taygeta.com/random/gaussian.html
     """
     
@@ -134,87 +122,87 @@ def gaussian_bm(rand, mu=0.0, sigma=1.0):
     return (mu + sigma*x1*d, mu + sigma*x2*d)
 
 
-def gaussian(impl, rand, **kwargs):
-    """docstring for gaussian"""
-    module = __import__('randomtools')
-    func = getattr(module, 'gaussian_' + impl)
-    return func(rand, **kwargs)
-
-
-def randint(randbits, start, end):
-    
-    def _randint():
-        
-        n = abs(end - start)
-        x = int(ceil( log(n)/LOG_2 ))
-        i = n + 1
-        
-        while i>n:
-            i = randbits(x)
-            
-        return i + start
-    
-    return _randint
-
-
+@curried
 def exponential(rand, lambd):
-    
-    def _exponential():
-        
+    '''
+    Exponential random number generator – exp(lambda)
+    '''
+    u = rand()
+    while u <= 1e-7:
         u = rand()
-        while u <= 1e-7:
-            u = rand()
-            
-        return -log(u)/lambd
     
-    return _exponential
+    return -log(u)/lambd
 
 
-def lognormal(randgauss):
+@curried
+def lognormal(randgauss, mu=0.0, sigma=1.0):
+    '''
+    Log-normal random number generator – ln(N(mu, sigma**2))
+    '''
+    return log(mu + sigma*randgauss())
+
+
+@curried
+def weibull(rand, shape, scale):
+    """
+    Weibull random number generator – W(shape, scale)
     
-    def _lognormal():
-        return log(randgauss())
+    Reference:
+    http://www.taygeta.com/random/weibull.xml
+    """
+    return scale*( -log( 1 - rand() ) )**(1/shape);
+
+
+@curried
+def randint(randbits, start, end):
+    """
+    Discrete uniform random number generator – U(start, end)
+    """
+    n = abs(end - start)
+    x = int(ceil( log(n)/LOG_2 ))
+    i = n + 1
     
-    return _lognormal
+    while i>n:
+        i = randbits(x)
+        
+    return i + start
 
 
+@curried
 def poisson(rand, lambd):
+    """
+    Poisson random number generator – poisson(lambda)
+    """
+    U = rand()
+    i = 0
+    p = exp(-lambd)
+    F = p
     
-    def _poisson():
+    while U >= F:
+        p = lambd * p / (i + 1)
+        F += p
+        i += 1
         
-        U = rand()
-        i = 0
-        p = exp(-lambd)
-        F = p
-        
-        while U >= F:
-            p = lambd * p / (i + 1)
-            F += p
-            i += 1
-            
-        return i
-    
-    return _poisson
+    return i
 
 
+@curried
 def binomial(rand, n, p):
+    """
+    Binomial random number generator – binomial(n, p)
+    """
+    U = rand()
+    c = p / (1 - p)
+    i = 0
+    pr = pow(1-p, n)
+    F = pr
     
-    def _binomial():
+    while U >= F:
+        pr *= c * (n - i) / (i + 1)
+        F += pr
+        i += 1
         
-        U = rand()
-        c = p / (1 - p)
-        i = 0
-        pr = pow(1-p, n)
-        F = pr
-        
-        while U >= F:
-            pr *= c * (n - i) / (i + 1)
-            F += pr
-            i += 1
-            
-        return i
-    
-    return _binomial
+    return i
 
 
 # from numpy import arange, zeros, mean
