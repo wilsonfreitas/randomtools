@@ -3,13 +3,13 @@
 
 import unittest
 import randomtools as rt
-import numpy as np
+import random
 from scipy import stats
 
 class Test(unittest.TestCase):
     def setUp(self):
-        self.rand = np.random.random
-        self.N = 1000
+        self.rand = random.random
+        self.N = 10000
         
     def t_pvalue(self, rand, mu_0=0.0):
         """compute t-statistic"""
@@ -114,6 +114,12 @@ class Test(unittest.TestCase):
         rand = rt.clt(self.rand, N=10)
         self.assert_(self.jarque_bera_test(rand),
             'Jarque-Bera test for gaussian random number generator (CLT)')
+
+    def test_jb_boxmiller(self):
+        rand = rt.boxmiller(self.rand)
+        self.assert_(self.jarque_bera_test(rand),
+            'Jarque-Bera test for gaussian random number generator (CLT)')
+
 
 
 if __name__ == '__main__':
