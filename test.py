@@ -42,23 +42,23 @@ class Test(unittest.TestCase):
         self.assert_(t > 0.05,
             'mean test for uniform random number generator: %f' % t)
 
-    def test_t_boxmiller(self):
-        rand = rt.boxmiller(self.rand, mu=10)
+    def test_t_boxmuller(self):
+        rand = rt.boxmuller(self.rand, mu=10)
         t = self.t_pvalue(rand, 10.0)
         self.assertEqual(t > 0.05, True, 
             'mean test for gaussian random number generator (B&M): %f'
             % t)
-        rand = rt.boxmiller(self.rand, sigma=5)
+        rand = rt.boxmuller(self.rand, sigma=5)
         t = self.t_pvalue(rand)
         self.assertEqual(t > 0.05, True, 
             'mean test for gaussian random number generator (B&M): %f'
             % t)
-        rand = rt.boxmiller(self.rand, mu=10)
+        rand = rt.boxmuller(self.rand, mu=10)
         t = self.t_pvalue(rand, 10.0)
         self.assertEqual(t > 0.05, True, 
             'mean test for gaussian random number generator (B&M): %f'
             % t)
-        rand = rt.boxmiller(self.rand, mu=10, sigma=5)
+        rand = rt.boxmuller(self.rand, mu=10, sigma=5)
         t = self.t_pvalue(rand, 10.0)
         self.assertEqual(t > 0.05, True, 
             'mean test for gaussian random number generator (B&M): %f'
@@ -115,8 +115,8 @@ class Test(unittest.TestCase):
         self.assert_(self.jarque_bera_test(rand),
             'Jarque-Bera test for gaussian random number generator (CLT)')
 
-    def test_jb_boxmiller(self):
-        rand = rt.boxmiller(self.rand)
+    def test_jb_boxmuller(self):
+        rand = rt.boxmuller(self.rand)
         self.assert_(self.jarque_bera_test(rand),
             'Jarque-Bera test for gaussian random number generator (CLT)')
 
