@@ -10,7 +10,7 @@ Copyright (c) 2008 WelCo. All rights reserved.
 """
 
 # from inspect import getargspec
-from math import sqrt, log, ceil, exp
+from math import sqrt, log, ceil, exp, pi, sin, cos
 
 LOG_2 = log(2)
 UNIF_STD = sqrt(1.0/12.0)
@@ -90,26 +90,41 @@ def clt(rand, mu=0.0, sigma=1.0, m=0.5, std=UNIF_STD, N=12):
 
 @curried
 @shortmemory
-def boxmiller(rand, mu=0.0, sigma=1.0):
+def boxmuller(rand, mu=0.0, sigma=1.0):
     """
-    Gaussian random number generator using the Box & Miller (1958) 
+    Gaussian random number generator using the Box & Muller (1958) 
     transformation – N(mu, sigma**2)
     
-    The reference bellow proposes a different implementation of original's
-    Box & Miller algorithm which uses
+    Reference:
+    http://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
+    http://www.taygeta.com/random/gaussian.html
+    """
     
-    y1 = sqrt( - 2 ln(x1) ) cos( 2 pi x2 )
-    y2 = sqrt( - 2 ln(x1) ) sin( 2 pi x2 )
+    u1 = rand()
+    u2 = rand()
+    x1 = sqrt(-2.0*log(u1))*cos(2*pi*u2)
+    x2 = sqrt(-2.0*log(u1))*sin(2*pi*u2)
+    return (mu + sigma*x1, mu + sigma*x2)
+
+
+@curried
+@shortmemory
+def marsaglia(rand, mu=0.0, sigma=1.0):
+    """
+    Gaussian random number generator using a variation of the Box & Muller 
+    (1958) transformation called Marsaglia polar method – N(mu, sigma**2)
     
-    to generate gaussian random numbers.
-    That implementation is said to be slow due to many calls it does to the math
-    library and also might have numerical instability when x1 is close to 
-    zero.
-    The proposed algorithm is a polar form of the Box & Miller algorithm.
-    This polar form is interesting because it does the sine and cosine 
-    geometrically without calling the math library.
+    The Marsaglia polar method avoids the trigonometric functions
+    calls used in the original implementation of Box & Muller transformation.
+    These calls to trigonometric functions are said to slow down the generation 
+    of random numbers.
+    It might make sense for FORTRAN/C/C++ implementations, but certainly doesn't
+    make sense for that Python implementation.
+    It has only educational purposes.
+    The references bellow contain more information on this theme.
     
     Reference:
+    http://en.wikipedia.org/wiki/Marsaglia_polar_method
     http://www.taygeta.com/random/gaussian.html
     """
     
