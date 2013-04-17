@@ -6,7 +6,6 @@ randomtools.py
 
 Created by Wilson Freitas on 2008-11-27.
 Copyright (c) 2008 WelCo. All rights reserved.
-
 """
 
 # from inspect import getargspec
