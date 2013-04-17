@@ -10,13 +10,15 @@ I also intend to show how to use **randomtools** to simulate some stochastic pro
 Continuous Distributions:
 
 *	*uniform*
-*	*gaussian* (Box & Muller transformation)
-*	*gaussian* (Marsaglia polar method)
-*	*gaussian* (Central Limit Theorem)
-*	*gaussian* (Moro Inversion)
+*	gaussian
+	*	*boxmuller* – Box & Muller transformation
+	*	*marsaglia* – Marsaglia polar method
+	*	*clt* – Central Limit Theorem
+	*	*moro* – Moro Inversion
+	*	interp – gaussian interpolation
 *	*exponential*
 *	*lognormal*
-*	gaussian with interpolation (article)
+*	*weibull*
 *	gamma
 *	levy
 *	power law (Pareto)
