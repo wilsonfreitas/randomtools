@@ -58,23 +58,8 @@ class Test(unittest.TestCase):
             % t)
 
     def test_t_boxmuller(self):
-        rand = rt.boxmuller(self.rand, mu=10.0)
-        t = self.t_pvalue(rand, 10.0)
-        self.assertEqual(t > 0.05, True, 
-            'mean test for gaussian random number generator (B&M): %f'
-            % t)
-        rand = rt.boxmuller(self.rand, sigma=5)
+        rand = rt.boxmuller(self.rand)
         t = self.t_pvalue(rand)
-        self.assertEqual(t > 0.05, True, 
-            'mean test for gaussian random number generator (B&M): %f'
-            % t)
-        rand = rt.boxmuller(self.rand, mu=10)
-        t = self.t_pvalue(rand, 10.0)
-        self.assertEqual(t > 0.05, True, 
-            'mean test for gaussian random number generator (B&M): %f'
-            % t)
-        rand = rt.boxmuller(self.rand, mu=10, sigma=5)
-        t = self.t_pvalue(rand, 10.0)
         self.assertEqual(t > 0.05, True, 
             'mean test for gaussian random number generator (B&M): %f'
             % t)
@@ -82,21 +67,6 @@ class Test(unittest.TestCase):
     def test_t_clt(self):
         rand = rt.clt(self.rand)
         t = self.t_pvalue(rand)
-        self.assertEqual(t > 0.05, True, 
-            'mean test for gaussian random number generator (CLT): %f'
-            % t)
-        rand = rt.clt(self.rand, sigma=9)
-        t = self.t_pvalue(rand)
-        self.assertEqual(t > 0.05, True, 
-            'mean test for gaussian random number generator (CLT): %f'
-            % t)
-        rand = rt.clt(self.rand, mu=10)
-        t = self.t_pvalue(rand, 10.0)
-        self.assertEqual(t > 0.05, True, 
-            'mean test for gaussian random number generator (CLT): %f'
-            % t)
-        rand = rt.clt(self.rand, mu=10, sigma=5)
-        t = self.t_pvalue(rand, 10.0)
         self.assertEqual(t > 0.05, True, 
             'mean test for gaussian random number generator (CLT): %f'
             % t)
