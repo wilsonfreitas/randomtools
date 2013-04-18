@@ -14,15 +14,12 @@ from math import sqrt, log, ceil, exp, pi, sin, cos
 LOG_2 = log(2)
 UNIF_STD = sqrt(1.0/12.0)
 
+
 class curried(object):
-    def __init__(self, func, *args, **kw):
+    def __init__(self, func):
         self.func = func
-        self.args = args
-        self.kw = kw
     
     def __call__(self, *args, **kw):
-        args = self.args + args
-        kw = dict(self.kw, **kw)
         return lambda *margs, **mkw: self.func(*(args+margs), **dict(kw, **mkw))
 
 
@@ -41,9 +38,6 @@ class shortmemory(object):
             self.cache[key] = self.func(*args, **kw)
             ret = self.cache[key]
             return ret[0]
-
-    def __repr__(self):
-        return self.func.__doc__
 
 
 @curried
@@ -64,10 +58,10 @@ def uniform(rand, a, b):
 
 
 @curried
-def clt(rand, mu=0.0, sigma=1.0, m=0.5, std=UNIF_STD, N=12):
+def clt(rand, m=0.5, std=UNIF_STD, N=12):
     """
     Gaussian random number generator using the Central Limit Theorem – 
-    N(mu, sigma**2)
+    N(0.0, 1.0)
     
     Generate gaussian distributed random numbers with mean and standard 
     deviation specified. The standard output yields random numbers following 
@@ -82,17 +76,15 @@ def clt(rand, mu=0.0, sigma=1.0, m=0.5, std=UNIF_STD, N=12):
     distribution, these parameters can be changed to configure properly the 
     random numbers generation.
     """
-    s = sum( rand() for i in range(N) )
-    norm = (s - N*m) / ( sqrt(N)*std )
-    return mu + sigma*norm
+    return (sum( rand() for i in range(N) ) - N*m) / ( sqrt(N)*std )
 
 
 @curried
 @shortmemory
-def boxmuller(rand, mu=0.0, sigma=1.0):
+def boxmuller(rand):
     """
     Gaussian random number generator using the Box & Muller (1958) 
-    transformation – N(mu, sigma**2)
+    transformation – N(0.0, 1.0)
     
     Reference:
     http://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
@@ -101,17 +93,15 @@ def boxmuller(rand, mu=0.0, sigma=1.0):
     
     u1 = rand()
     u2 = rand()
-    x1 = sqrt(-2.0*log(u1))*cos(2*pi*u2)
-    x2 = sqrt(-2.0*log(u1))*sin(2*pi*u2)
-    return (mu + sigma*x1, mu + sigma*x2)
+    return sqrt(-2.0*log(u1))*cos(2*pi*u2), sqrt(-2.0*log(u1))*sin(2*pi*u2)
 
 
 @curried
 @shortmemory
-def marsaglia(rand, mu=0.0, sigma=1.0):
+def marsaglia(rand):
     """
     Gaussian random number generator using a variation of the Box & Muller 
-    (1958) transformation called Marsaglia polar method – N(mu, sigma**2)
+    (1958) transformation called Marsaglia polar method – N(0.0, 1.0)
     
     The Marsaglia polar method avoids the trigonometric functions
     calls used in the original implementation of Box & Muller transformation.
@@ -133,7 +123,7 @@ def marsaglia(rand, mu=0.0, sigma=1.0):
         x2 = 2.0 * rand() - 1.0
         d = x1*x1 + x2*x2
     d = sqrt( (-2.0*log(d))/d )
-    return (mu + sigma*x1*d, mu + sigma*x2*d)
+    return (x1*d, x2*d)
 
 
 A = [ 2.50662823884, -18.61500062529, 41.39119773534, -25.44106049637 ]
@@ -143,9 +133,9 @@ C = [ 0.3374754822726147, 0.9761690190917186, 0.1607979714918209,
     0.0000321767881768, 0.0000002888167364, 0.0000003960315187 ]
 
 @curried
-def moro(rand, mu=0.0, sigma=1.0):
+def moro(rand):
     '''
-    Returns the inverse of the cumulative normal distribution 
+    Returns the inverse of the cumulative normal distribution – N(0.0, 1.0)
     Written by B. Moro, November 1994
     '''
     U = rand()
@@ -154,7 +144,7 @@ def moro(rand, mu=0.0, sigma=1.0):
         R = X*X
         R = X*( ( (A[3]*R + A[2])*R + A[1] )*R + A[0] ) / \
             ( ( ( (B[3]*R + B[2])*R + B[1] )*R + B[0] )*R + 1.0 )
-        return mu + sigma*R
+        return R
 
     R = U
     if X > 0.0:
@@ -164,7 +154,7 @@ def moro(rand, mu=0.0, sigma=1.0):
     R = C[0] + R*(C[1] + R*( C[2] + R*( C[3] + R*( C[4] + R*( C[5] + R*( C[6] + R*(C[7] + R*C[8]) ) ) ) ) ))
     if X < 0.0:
         R = -R
-    return mu + sigma*R
+    return R
 
 
 @curried
@@ -180,11 +170,11 @@ def exponential(rand, lambd):
 
 
 @curried
-def lognormal(randgauss, mu=0.0, sigma=1.0):
+def lognormal(randgauss):
     '''
-    Log-normal random number generator – ln(N(mu, sigma**2))
+    Log-normal random number generator – ln(N(0.0, 1.0))
     '''
-    return log(mu + sigma*randgauss())
+    return log(randgauss())
 
 
 @curried
@@ -264,4 +254,7 @@ def binomial(rand, n, p):
 #                     m[j] += 1
 #             mu = mean(m)
 #             sigma_2 = var(m)
-            
+
+
+
+
