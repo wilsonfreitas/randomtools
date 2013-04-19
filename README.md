@@ -19,7 +19,7 @@ Continuous Distributions:
 *	*exponential*
 *	*lognormal*
 *	*weibull*
-*	gamma
+*	*gamma*
 *	levy
 *	power law (Pareto)
 *	beta
