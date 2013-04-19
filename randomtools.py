@@ -10,6 +10,7 @@ Copyright (c) 2008 WelCo. All rights reserved.
 
 # from inspect import getargspec
 from math import sqrt, log, ceil, exp, pi, sin, cos
+from operator import mul
 
 LOG_2 = log(2)
 UNIF_STD = sqrt(1.0/12.0)
@@ -238,6 +239,15 @@ def binomial(rand, n, p):
         i += 1
         
     return i
+
+
+@curried
+def gamma(rand, n=1.0, lambd=1.0):
+    """
+    Gamma random number generator – gamma(n, lambda)
+    """
+
+    return -( 1.0/lambd )*log( reduce(mul, (rand() for i in range(int(n))), 1.0) )
 
 
 # from numpy import arange, zeros, mean

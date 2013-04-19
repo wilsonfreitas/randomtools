@@ -95,6 +95,13 @@ class Test(unittest.TestCase):
             'mean test for exponential random number generator (Exponential): %f'
             % t)
 
+    def test_t_gamma(self):
+        rand = rt.gamma(self.rand)
+        t = self.t_pvalue(rand, 1.0)
+        self.assertEqual(t > 0.05, True, 
+            'mean test for gaussian random number generator (Gamma): %f'
+            % t)
+
     def test_ks_exponential(self):
         rand = rt.exponential(self.rand, 1.0)
         ks = self.ks_pvalue(rand, 'expon')
