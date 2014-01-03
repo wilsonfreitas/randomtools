@@ -1,6 +1,6 @@
 ![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/wilsonfreitas/randomtools/trend.png)
 
-> Instead of writing an one page document with all random tools it should be interesting post some articles discussing each examples and its accounts.
+> Instead of writing an one page document with all random tools it should be interesting post some articles discussing each examples and its formulae.
 
 
 # randomtools
