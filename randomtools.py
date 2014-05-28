@@ -11,6 +11,7 @@ Copyright (c) 2008 WelCo. All rights reserved.
 # from inspect import getargspec
 from math import sqrt, log, ceil, exp, pi, sin, cos
 from operator import mul
+from inspect import getargspec
 
 LOG_2 = log(2)
 UNIF_STD = sqrt(1.0/12.0)
@@ -41,7 +42,25 @@ class shortmemory(object):
             return ret[0]
 
 
-@curried
+def curry(func):
+    args_spec = getargspec(func)
+    if args_spec.defaults:
+        kw_len = len(args_spec.defaults)
+        kd = dict(zip(args_spec.args[-kw_len:], args_spec.defaults))
+    else:
+        kw_len = 0
+        kd = {}
+    args_len = len(args_spec.args) - kw_len
+    def _func(*args, **kw):
+        kd.update(kw)
+        if args_len - len(args) > 0:
+            return lambda *xs, **ks: _func(*(args + xs), **dict(kd, **ks))
+        else:
+            return lambda **ks: func(*args, **dict(kd, **ks))
+    return _func
+
+
+@curry
 def uniform(rand, a, b):
     '''
     Uniform distribution - U(a,b)
@@ -58,7 +77,7 @@ def uniform(rand, a, b):
     return a + (b-a) * rand()
 
 
-@curried
+@curry
 def clt(rand, m=0.5, std=UNIF_STD, N=12):
     """
     Gaussian random number generator using the Central Limit Theorem – 
@@ -80,8 +99,7 @@ def clt(rand, m=0.5, std=UNIF_STD, N=12):
     return (sum( rand() for i in range(N) ) - N*m) / ( sqrt(N)*std )
 
 
-@curried
-@shortmemory
+@curry
 def boxmuller(rand):
     """
     Gaussian random number generator using the Box & Muller (1958) 
@@ -94,11 +112,10 @@ def boxmuller(rand):
     
     u1 = rand()
     u2 = rand()
-    return sqrt(-2.0*log(u1))*cos(2*pi*u2), sqrt(-2.0*log(u1))*sin(2*pi*u2)
+    return sqrt(-2.0*log(u1))*cos(2*pi*u2) #, sqrt(-2.0*log(u1))*sin(2*pi*u2)
 
 
-@curried
-@shortmemory
+@curry
 def marsaglia(rand):
     """
     Gaussian random number generator using a variation of the Box & Muller 
@@ -124,7 +141,7 @@ def marsaglia(rand):
         x2 = 2.0 * rand() - 1.0
         d = x1*x1 + x2*x2
     d = sqrt( (-2.0*log(d))/d )
-    return (x1*d, x2*d)
+    return x1*d # (x1*d, x2*d)
 
 
 A = [ 2.50662823884, -18.61500062529, 41.39119773534, -25.44106049637 ]
@@ -133,7 +150,7 @@ C = [ 0.3374754822726147, 0.9761690190917186, 0.1607979714918209,
     0.0276438810333863, 0.0038405729373609, 0.0003951896511919,
     0.0000321767881768, 0.0000002888167364, 0.0000003960315187 ]
 
-@curried
+@curry
 def moro(rand):
     '''
     Returns the inverse of the cumulative normal distribution – N(0.0, 1.0)
@@ -158,7 +175,7 @@ def moro(rand):
     return R
 
 
-@curried
+@curry
 def exponential(rand, lambd):
     '''
     Exponential random number generator – exp(lambda)
@@ -170,7 +187,7 @@ def exponential(rand, lambd):
     return -log(u)/lambd
 
 
-@curried
+@curry
 def lognormal(randgauss):
     '''
     Log-normal random number generator – ln(N(0.0, 1.0))
@@ -178,7 +195,7 @@ def lognormal(randgauss):
     return log(randgauss())
 
 
-@curried
+@curry
 def weibull(rand, shape, scale):
     """
     Weibull random number generator – W(shape, scale)
@@ -189,7 +206,7 @@ def weibull(rand, shape, scale):
     return scale*( -log( 1 - rand() ) )**(1/shape);
 
 
-@curried
+@curry
 def randint(randbits, start, end):
     """
     Discrete uniform random number generator – U(start, end)
@@ -204,7 +221,7 @@ def randint(randbits, start, end):
     return i + start
 
 
-@curried
+@curry
 def poisson(rand, lambd):
     """
     Poisson random number generator – poisson(lambda)
@@ -222,7 +239,7 @@ def poisson(rand, lambd):
     return i
 
 
-@curried
+@curry
 def binomial(rand, n, p):
     """
     Binomial random number generator – binomial(n, p)
@@ -241,7 +258,7 @@ def binomial(rand, n, p):
     return i
 
 
-@curried
+@curry
 def gamma(rand, n=1.0, lambd=1.0):
     """
     Gamma random number generator – gamma(n, lambda)
