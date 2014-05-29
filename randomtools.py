@@ -13,54 +13,22 @@ from math import sqrt, log, ceil, exp, pi, sin, cos
 from operator import mul
 from inspect import getargspec
 
-LOG_2 = log(2)
-UNIF_STD = sqrt(1.0/12.0)
 
-
-class curried(object):
-    def __init__(self, func):
-        self.func = func
-    
-    def __call__(self, *args, **kw):
-        return lambda *margs, **mkw: self.func(*(args+margs), **dict(kw, **mkw))
-
-
-class shortmemory(object):
-    def __init__(self, func):
-        self.func = func
-        self.cache = { }
-
-    def __call__(self, *args, **kw):
-        key = args + tuple(kw.keys()) + tuple(kw.values())
-        try:
-            ret = self.cache[key]
-            del self.cache[key]
-            return ret[1]
-        except:
-            self.cache[key] = self.func(*args, **kw)
-            ret = self.cache[key]
-            return ret[0]
-
-
-def curry(func):
+def bindergen(func):
     args_spec = getargspec(func)
-    if args_spec.defaults:
-        kw_len = len(args_spec.defaults)
-        kd = dict(zip(args_spec.args[-kw_len:], args_spec.defaults))
-    else:
-        kw_len = 0
-        kd = {}
-    args_len = len(args_spec.args) - kw_len
-    def _func(*args, **kw):
-        kd.update(kw)
+    args_len = len(args_spec.args)
+    def _func(*args):
         if args_len - len(args) > 0:
-            return lambda *xs, **ks: _func(*(args + xs), **dict(kd, **ks))
+            return lambda *xs: _func(*(args + xs))
         else:
-            return lambda **ks: func(*args, **dict(kd, **ks))
+            def _(N):
+                for i in range(N):
+                    yield func(*args)
+            return _
     return _func
 
 
-@curry
+@bindergen
 def uniform(rand, a, b):
     '''
     Uniform distribution - U(a,b)
@@ -77,8 +45,8 @@ def uniform(rand, a, b):
     return a + (b-a) * rand()
 
 
-@curry
-def clt(rand, m=0.5, std=UNIF_STD, N=12):
+@bindergen
+def clt(rand, N):
     """
     Gaussian random number generator using the Central Limit Theorem – 
     N(0.0, 1.0)
@@ -96,10 +64,10 @@ def clt(rand, m=0.5, std=UNIF_STD, N=12):
     distribution, these parameters can be changed to configure properly the 
     random numbers generation.
     """
-    return (sum( rand() for i in range(N) ) - N*m) / ( sqrt(N)*std )
+    return (sum( rand() for i in range(N) ) - N*0.5) / ( sqrt(N/12.0) )
 
 
-@curry
+@bindergen
 def boxmuller(rand):
     """
     Gaussian random number generator using the Box & Muller (1958) 
@@ -115,7 +83,7 @@ def boxmuller(rand):
     return sqrt(-2.0*log(u1))*cos(2*pi*u2) #, sqrt(-2.0*log(u1))*sin(2*pi*u2)
 
 
-@curry
+@bindergen
 def marsaglia(rand):
     """
     Gaussian random number generator using a variation of the Box & Muller 
@@ -150,7 +118,7 @@ C = [ 0.3374754822726147, 0.9761690190917186, 0.1607979714918209,
     0.0276438810333863, 0.0038405729373609, 0.0003951896511919,
     0.0000321767881768, 0.0000002888167364, 0.0000003960315187 ]
 
-@curry
+@bindergen
 def moro(rand):
     '''
     Returns the inverse of the cumulative normal distribution – N(0.0, 1.0)
@@ -175,7 +143,7 @@ def moro(rand):
     return R
 
 
-@curry
+@bindergen
 def exponential(rand, lambd):
     '''
     Exponential random number generator – exp(lambda)
@@ -187,7 +155,7 @@ def exponential(rand, lambd):
     return -log(u)/lambd
 
 
-@curry
+@bindergen
 def lognormal(randgauss):
     '''
     Log-normal random number generator – ln(N(0.0, 1.0))
@@ -195,7 +163,7 @@ def lognormal(randgauss):
     return log(randgauss())
 
 
-@curry
+@bindergen
 def weibull(rand, shape, scale):
     """
     Weibull random number generator – W(shape, scale)
@@ -206,13 +174,13 @@ def weibull(rand, shape, scale):
     return scale*( -log( 1 - rand() ) )**(1/shape);
 
 
-@curry
+@bindergen
 def randint(randbits, start, end):
     """
     Discrete uniform random number generator – U(start, end)
     """
     n = abs(end - start)
-    x = int(ceil( log(n)/LOG_2 ))
+    x = int(ceil( log(n)/log(2) ))
     i = n + 1
     
     while i>n:
@@ -221,7 +189,7 @@ def randint(randbits, start, end):
     return i + start
 
 
-@curry
+@bindergen
 def poisson(rand, lambd):
     """
     Poisson random number generator – poisson(lambda)
@@ -239,7 +207,7 @@ def poisson(rand, lambd):
     return i
 
 
-@curry
+@bindergen
 def binomial(rand, n, p):
     """
     Binomial random number generator – binomial(n, p)
@@ -258,10 +226,11 @@ def binomial(rand, n, p):
     return i
 
 
-@curry
-def gamma(rand, n=1.0, lambd=1.0):
+@bindergen
+def gamma(rand, n, lambd):
     """
     Gamma random number generator – gamma(n, lambda)
+    Good example: n=1, lambd=1
     """
 
     return -( 1.0/lambd )*log( reduce(mul, (rand() for i in range(int(n))), 1.0) )
