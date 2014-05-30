@@ -14,7 +14,7 @@ class Test(unittest.TestCase):
         
     def t_pvalue(self, rand, mu_0=0.0):
         """compute t-statistic p-value"""
-        sample = [i for i in rand(self.N)]
+        sample = list(rand(self.N))
         return stats.ttest_1samp(sample, mu_0)[1]
         # mean = np.mean(sample)
         # serr = np.std(sample)/np.sqrt(self.N)
@@ -22,13 +22,13 @@ class Test(unittest.TestCase):
 
     def ks_pvalue(self, rand, kind='norm'):
         """compute ks-statistic p-value"""
-        sample = [i for i in rand(self.N)]
+        sample = list(rand(self.N))
         st = stats.kstest(sample, kind)
         return st[1]
 
     def jb_pvalue(self, rand):
         """compute jarque-bera-statistic p-value"""
-        sample = [i for i in rand(self.N)]
+        sample = list(rand(self.N))
         jb = float(self.N)/6*( stats.skew(sample)**2 + 
             0.25*stats.kurtosis(sample, fisher=True)**2 )
         return 1 - stats.chi2(2).cdf(jb)
