@@ -1,17 +1,22 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-"""
-randomtools.py
-
-Created by Wilson Freitas on 2008-11-27.
-Copyright (c) 2008 WelCo. All rights reserved.
-"""
-
-# from inspect import getargspec
 from math import sqrt, log, ceil, exp, pi, sin, cos
 from operator import mul
 from inspect import getargspec
+
+class _rng(object):
+    def __init__(self, func, args):
+        self.func = func
+        self.args = dict(zip(getargspec(func).args, args))
+
+    def __call__(self, N):
+        for i in range(N):
+            yield self.func(**self.args)
+    
+    def distmean(self, N):
+        # theo_mean[self.func.__name__](**self.args)
+        pass
 
 
 def bindergen(func):
@@ -21,10 +26,7 @@ def bindergen(func):
         if args_len - len(args) > 0:
             return lambda *xs: _func(*(args + xs))
         else:
-            def _(N):
-                for i in range(N):
-                    yield func(*args)
-            return _
+            return _rng(func, args)
     return _func
 
 
